@@ -89,8 +89,6 @@ export async function POST(req) {
   }
 }
 
-
-
 export async function PATCH(req) {
   try {
     const client = await clientPromise;
@@ -101,10 +99,15 @@ export async function PATCH(req) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const paymentData = await db.collection("payments").findOne({ _id: new ObjectId(paymentId) });
+    const paymentData = await db
+      .collection("payments")
+      .findOne({ _id: new ObjectId(paymentId) });
 
     if (!paymentData) {
-      return NextResponse.json({ message: "Payment records not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Payment records not found" },
+        { status: 404 },
+      );
     }
 
     const result = await db
@@ -145,7 +148,10 @@ export async function PATCH(req) {
     }
 
     return NextResponse.json({
-      message: status === "approved" ? "Status updated & Email sent!" : "Status updated",
+      message:
+        status === "approved"
+          ? "Status updated & Email sent!"
+          : "Status updated",
       result,
     });
   } catch (error) {
@@ -156,7 +162,6 @@ export async function PATCH(req) {
     );
   }
 }
-
 
 export async function DELETE(req) {
   try {

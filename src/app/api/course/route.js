@@ -14,14 +14,25 @@ export async function GET(req) {
   try {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
-
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
     if (id) {
+      if (!ObjectId.isValid(id)) {
+        return NextResponse.json(
+          { message: "Invalid Course ID" },
+          { status: 400 },
+        );
+      }
       const course = await db
         .collection("courses")
         .findOne({ _id: new ObjectId(id) });
+      if (!course) {
+        return NextResponse.json(
+          { message: "Course not found" },
+          { status: 404 },
+        );
+      }
       return NextResponse.json(course);
     }
 
@@ -33,7 +44,7 @@ export async function GET(req) {
     return NextResponse.json(courses);
   } catch (error) {
     return NextResponse.json(
-      { message: "Error fetching courses", error: error.message },
+      { message: "Error", error: error.message },
       { status: 500 },
     );
   }
@@ -44,7 +55,6 @@ export async function POST(req) {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
     const body = await req.json();
-
     const {
       course_name,
       course_price,
@@ -57,10 +67,7 @@ export async function POST(req) {
     } = body;
 
     if (!(await isAdmin(db, admin_uid))) {
-      return NextResponse.json(
-        { message: "Forbidden: Admin access only" },
-        { status: 403 },
-      );
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const newCourse = {
@@ -81,7 +88,7 @@ export async function POST(req) {
     );
   } catch (error) {
     return NextResponse.json(
-      { message: "Failed to add course", error: error.message },
+      { message: "Failed", error: error.message },
       { status: 500 },
     );
   }
@@ -92,7 +99,6 @@ export async function PATCH(req) {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
     const body = await req.json();
-
     const { course_id, admin_uid, ...updateData } = body;
 
     if (!(await isAdmin(db, admin_uid))) {
@@ -102,7 +108,6 @@ export async function PATCH(req) {
     const result = await db
       .collection("courses")
       .updateOne({ _id: new ObjectId(course_id) }, { $set: updateData });
-
     return NextResponse.json({
       message: "Course updated successfully",
       result,
@@ -119,7 +124,6 @@ export async function DELETE(req) {
   try {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
-
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const admin_uid = searchParams.get("admin_uid");
