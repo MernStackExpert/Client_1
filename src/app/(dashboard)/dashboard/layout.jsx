@@ -163,10 +163,7 @@ const DashboardLayout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="btn btn-ghost btn-circle relative">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 h-2 w-2 bg-error rounded-full"></span>
-            </button>
+           
             <div className="flex items-center gap-3 pl-4 border-l border-base-300">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-black truncate max-w-[120px]">
