@@ -3,13 +3,12 @@ import Hero from "@/components/main_home/Hero/Hero";
 import Ratings from "@/components/main_home/Ratings/Ratings";
 import Services from "@/components/main_home/Services/Services";
 
-
-
 export const metadata = {
-  title: "SpyMart - Master Your Skills with Professional Courses",
-  description: "Join SpyMart to access high-quality courses with expert mentors. Start your learning journey today.",
+  title: "ShakibSchool - Master Your Skills with Professional Courses",
+  description:
+    "Join ShakibSchool to access high-quality courses with expert mentors. Start your learning journey today.",
   openGraph: {
-    title: "SpyMart | Professional LMS",
+    title: "ShakibSchool | Professional LMS",
     description: "Premium course selling platform for modern learners.",
     images: ["/og-image.jpg"],
   },

@@ -1,7 +1,7 @@
 import CourseListContent from "@/components/main_home/Courses/CourseListContent";
 
 export const metadata = {
-  title: "All Courses | SpyMart",
+  title: "All Courses | ShakibSchool",
   description: "Browse our extensive collection of professional courses.",
 };
 
@@ -28,7 +28,8 @@ const AllCoursesPage = async () => {
             Explore All <span className="text-primary">Courses</span>
           </h1>
           <p className="text-base-content/60 max-w-2xl mx-auto font-medium">
-           All the best courses for your skill development are now in one place. Buy today.
+            All the best courses for your skill development are now in one
+            place. Buy today.
           </p>
         </div>
       </div>

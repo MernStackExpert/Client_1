@@ -13,7 +13,7 @@ const LoginPage = () => {
   const handleLogin = async () => {
     try {
       await loginWithGoogle();
-      toast.success("Welcome to SpyMart!");
+      toast.success("Welcome to ShakibSchool!");
       router.push("/");
     } catch (error) {
       toast.error("Login failed. Try again.");
@@ -28,10 +28,14 @@ const LoginPage = () => {
             <ShieldCheck className="h-10 w-10 text-primary-content" />
           </div>
         </div>
-        <h1 className="text-4xl font-black uppercase tracking-tighter mb-2">Spy<span className="text-primary">Mart</span></h1>
-        <p className="text-base-content/60 font-medium mb-10">Access your premium courses instantly</p>
-        
-        <button 
+        <h1 className="text-4xl font-black uppercase tracking-tighter mb-2">
+          Spy<span className="text-primary">Mart</span>
+        </h1>
+        <p className="text-base-content/60 font-medium mb-10">
+          Access your premium courses instantly
+        </p>
+
+        <button
           onClick={handleLogin}
           className="btn btn-outline btn-lg w-full rounded-2xl gap-4 font-black border-2 hover:bg-primary hover:border-primary transition-all"
         >

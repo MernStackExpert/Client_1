@@ -5,7 +5,9 @@ import clientPromise from "../../../../lib/db";
 
 async function isAdmin(db, admin_uid) {
   if (!admin_uid) return false;
-  const user = await db.collection("users").findOne({ firebase_uid: admin_uid });
+  const user = await db
+    .collection("users")
+    .findOne({ firebase_uid: admin_uid });
   return user?.role === "admin";
 }
 
@@ -15,17 +17,30 @@ export async function GET(req) {
     const db = client.db(process.env.MONGODB_DB);
     const { searchParams } = new URL(req.url);
     const admin_uid = searchParams.get("admin_uid");
+    const email = searchParams.get("email");
 
-    if (!(await isAdmin(db, admin_uid))) {
-      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    if (admin_uid) {
+      if (!(await isAdmin(db, admin_uid))) {
+        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+      }
+      const allPayments = await db
+        .collection("payments")
+        .find({})
+        .sort({ createdAt: -1 })
+        .toArray();
+      return NextResponse.json(allPayments);
     }
 
-    const payments = await db
-      .collection("payments")
-      .find({})
-      .sort({ createdAt: -1 })
-      .toArray();
-    return NextResponse.json(payments);
+    if (email) {
+      const userPayments = await db
+        .collection("payments")
+        .find({ email })
+        .sort({ createdAt: -1 })
+        .toArray();
+      return NextResponse.json(userPayments);
+    }
+
+    return NextResponse.json({ message: "Parameter missing" }, { status: 400 });
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
@@ -67,7 +82,10 @@ export async function POST(req) {
     };
 
     const result = await db.collection("payments").insertOne(newPayment);
-    return NextResponse.json({ message: "Success", id: result.insertedId }, { status: 201 });
+    return NextResponse.json(
+      { message: "Success", id: result.insertedId },
+      { status: 201 },
+    );
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
@@ -91,10 +109,12 @@ export async function PATCH(req) {
       return NextResponse.json({ message: "Not Found" }, { status: 404 });
     }
 
-    await db.collection("payments").updateOne(
-      { _id: new ObjectId(paymentId) },
-      { $set: { status: status } }
-    );
+    await db
+      .collection("payments")
+      .updateOne(
+        { _id: new ObjectId(paymentId) },
+        { $set: { status: status } },
+      );
 
     if (status === "approved") {
       const transporter = nodemailer.createTransport({
@@ -106,12 +126,12 @@ export async function PATCH(req) {
           pass: process.env.EMAIL_PASS,
         },
         tls: {
-          rejectUnauthorized: false
-        }
+          rejectUnauthorized: false,
+        },
       });
 
       const mailOptions = {
-        from: `"SpyMart Support" <${process.env.EMAIL_USER}>`,
+        from: `"ShakibSchool Support" <${process.env.EMAIL_USER}>`,
         to: paymentData.email,
         subject: `Payment Approved: ${paymentData.course_name}`,
         html: `
@@ -124,12 +144,14 @@ export async function PATCH(req) {
               <a href="${paymentData.drive_link}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Access Course</a>
             </div>
             <p>If you have any questions, feel free to reply to this email.</p>
-            <p>Happy Learning!<br/><b>SpyMart Team</b></p>
+            <p>Happy Learning!<br/><b>ShakibSchool Team</b></p>
           </div>
         `,
       };
 
-      transporter.sendMail(mailOptions).catch(err => console.error("Email sending failed:", err));
+      transporter
+        .sendMail(mailOptions)
+        .catch((err) => console.error("Email sending failed:", err));
     }
 
     return NextResponse.json({ message: "Success" });

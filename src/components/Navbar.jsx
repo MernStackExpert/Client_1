@@ -161,7 +161,7 @@ const Navbar = () => {
 
               <div className="space-y-2 flex-grow">
                 <Link
-                  href={user?.role === "admin" ? "/dashboard/admin" : "/dashboard/user"}
+                  href={user?.role === "admin" ? "/dashboard" : "/user-blust"}
                   onClick={() => setIsSidebarOpen(false)}
                   className={`flex items-center gap-4 p-4 rounded-2xl transition-all font-bold group ${
                     pathname.startsWith("/dashboard") ? "bg-primary text-primary-content shadow-lg shadow-primary/20" : "hover:bg-primary/10"
