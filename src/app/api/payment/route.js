@@ -5,9 +5,7 @@ import clientPromise from "../../../../lib/db";
 
 async function isAdmin(db, admin_uid) {
   if (!admin_uid) return false;
-  const user = await db
-    .collection("users")
-    .findOne({ firebase_uid: admin_uid });
+  const user = await db.collection("users").findOne({ firebase_uid: admin_uid });
   return user?.role === "admin";
 }
 
@@ -15,15 +13,11 @@ export async function GET(req) {
   try {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
-
     const { searchParams } = new URL(req.url);
     const admin_uid = searchParams.get("admin_uid");
 
     if (!(await isAdmin(db, admin_uid))) {
-      return NextResponse.json(
-        { message: "Forbidden: Admin access only" },
-        { status: 403 },
-      );
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
     const payments = await db
@@ -33,10 +27,7 @@ export async function GET(req) {
       .toArray();
     return NextResponse.json(payments);
   } catch (error) {
-    return NextResponse.json(
-      { message: "Error", error: error.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
 
@@ -45,7 +36,6 @@ export async function POST(req) {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
     const body = await req.json();
-
     const {
       receive_number,
       sender_number,
@@ -77,15 +67,9 @@ export async function POST(req) {
     };
 
     const result = await db.collection("payments").insertOne(newPayment);
-    return NextResponse.json(
-      { message: "Success", id: result.insertedId },
-      { status: 201 },
-    );
+    return NextResponse.json({ message: "Success", id: result.insertedId }, { status: 201 });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Failed", error: error.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
 
@@ -104,62 +88,53 @@ export async function PATCH(req) {
       .findOne({ _id: new ObjectId(paymentId) });
 
     if (!paymentData) {
-      return NextResponse.json(
-        { message: "Payment records not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ message: "Not Found" }, { status: 404 });
     }
 
-    const result = await db
-      .collection("payments")
-      .updateOne(
-        { _id: new ObjectId(paymentId) },
-        { $set: { status: status } },
-      );
+    await db.collection("payments").updateOne(
+      { _id: new ObjectId(paymentId) },
+      { $set: { status: status } }
+    );
 
     if (status === "approved") {
       const transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
         },
+        tls: {
+          rejectUnauthorized: false
+        }
       });
 
       const mailOptions = {
-        from: `"Course Success" <${process.env.EMAIL_USER}>`,
+        from: `"SpyMart Support" <${process.env.EMAIL_USER}>`,
         to: paymentData.email,
-        subject: `Your Payment Approved! Get Access to ${paymentData.course_name}`,
+        subject: `Payment Approved: ${paymentData.course_name}`,
         html: `
-          <div style="font-family: sans-serif; padding: 20px; color: #333;">
-            <h2>Hello ${paymentData.name},</h2>
-            <p>Great news! Your payment for the course <b>${paymentData.course_name}</b> has been approved.</p>
-            <p>You can now access your course materials using the Google Drive link below:</p>
+          <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+            <h2 style="color: #2563eb;">Payment Successful!</h2>
+            <p>Hello <b>${paymentData.name}</b>,</p>
+            <p>Your payment for <b>${paymentData.course_name}</b> has been approved.</p>
+            <p>You can now access your course materials from the link below:</p>
             <div style="margin: 20px 0;">
-              <a href="${paymentData.drive_link}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Access Course Link</a>
+              <a href="${paymentData.drive_link}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Access Course</a>
             </div>
-            <p>If you have any issues, feel free to contact us.</p>
-            <p>Happy Learning!</p>
+            <p>If you have any questions, feel free to reply to this email.</p>
+            <p>Happy Learning!<br/><b>SpyMart Team</b></p>
           </div>
         `,
       };
 
-      await transporter.sendMail(mailOptions);
+      transporter.sendMail(mailOptions).catch(err => console.error("Email sending failed:", err));
     }
 
-    return NextResponse.json({
-      message:
-        status === "approved"
-          ? "Status updated & Email sent!"
-          : "Status updated",
-      result,
-    });
+    return NextResponse.json({ message: "Success" });
   } catch (error) {
-    console.error("Error in PATCH payment:", error);
-    return NextResponse.json(
-      { message: "Update failed", error: error.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
 
@@ -167,7 +142,6 @@ export async function DELETE(req) {
   try {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_DB);
-
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const admin_uid = searchParams.get("admin_uid");
@@ -176,14 +150,9 @@ export async function DELETE(req) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    const result = await db
-      .collection("payments")
-      .deleteOne({ _id: new ObjectId(id) });
-    return NextResponse.json({ message: "Deleted successfully", result });
+    await db.collection("payments").deleteOne({ _id: new ObjectId(id) });
+    return NextResponse.json({ message: "Deleted" });
   } catch (error) {
-    return NextResponse.json(
-      { message: "Delete failed", error: error.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
