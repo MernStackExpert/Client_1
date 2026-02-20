@@ -26,12 +26,25 @@ const CourseDetails = () => {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [paymentMethods, setPaymentMethods] = useState([]);
 
-  const paymentMethods = [
-    { name: "Bkash (Personal)", number: "017XXXXXXXX" },
-    { name: "Nagad (Personal)", number: "018XXXXXXXX" },
-    { name: "Rocket (Personal)", number: "019XXXXXXXX" }
-  ];
+  useEffect(() => {
+  const fetchPaymentMethods = async () => {
+    try {
+      const res = await axios.get("/api/pay_num");
+      setPaymentMethods(res.data);
+    } catch (error) {
+      toast.error("Failed to load payment methods");
+    }
+  };
+
+  fetchPaymentMethods();
+}, []);
+
+  // const paymentMethods = [
+  //   { name: "Bkash (Personal)", number: "01924628304" },
+  //   { name: "Nagad (Personal)", number: "01730056266" },
+  //   ];
 
   useEffect(() => {
     const fetchCourse = async () => {

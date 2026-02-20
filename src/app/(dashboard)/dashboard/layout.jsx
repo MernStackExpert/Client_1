@@ -40,6 +40,11 @@ const DashboardLayout = ({ children }) => {
       icon: <LayoutDashboard size={20} />,
     },
     {
+      name: "Manage Num",
+      href: "/dashboard/manage_num",
+      icon: <CreditCard size={20} />,
+    },
+    {
       name: "Manage Payments",
       href: "/dashboard/manage-payment",
       icon: <CreditCard size={20} />,

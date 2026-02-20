@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+
   title: "Course Selling Platform",
   description: "Learn and grow with our professional courses",
 };
